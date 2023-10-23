@@ -1,0 +1,7 @@
+# All exernal python libraries here are required to run this program.
+# To install, use 'pip install -r requirements.txt' in the terminal.
+# Note: Python must be added to path
+
+python-dotenv==1.0.0 # load data from .env file
+aiomysql==0.2.0 # asynchronous SQL interface for python
+dnspython==2.4.2 # resolve hostname
