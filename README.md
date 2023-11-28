@@ -1,6 +1,0 @@
-# 4347-Database-Project
-
-Contributors
-@ryandis44
-@ ...
-@ ...
