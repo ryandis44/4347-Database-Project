@@ -1,3 +1,5 @@
+import aiomysql
+import asyncio
 import time
 from Database.DatabaseConnector import Database
 from datetime import datetime
