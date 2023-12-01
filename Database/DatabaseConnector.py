@@ -10,8 +10,6 @@ try:
 except dns.resolver.NoAnswer:
     IP = "No answer"
 
-IP = "192.168.0.12"
-
 POOL = None
 async def connect_db() -> None:
     global POOL
