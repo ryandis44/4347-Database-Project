@@ -1,3 +1,5 @@
+# Initial data import file
+
 import xlwings as xw
 import asyncio
 from Database.DatabaseConnector import Database

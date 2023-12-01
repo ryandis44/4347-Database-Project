@@ -3,7 +3,6 @@ import asyncio
 
 from Database.DatabaseConnector import connect_db
 from Database.DatabaseSearch import search_database
-from example import database_interaction_example
 from Database.BookLoans import Borrower
 
 l = Borrower(card_id=4)
