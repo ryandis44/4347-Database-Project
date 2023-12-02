@@ -15,8 +15,10 @@ async def main() -> None:
     # await l.check_out(isbn13=9780452264465)
     
     val = await loan_search("9780452264465")
-    fine = Fines(val)
-    print("")
+    fine = Fines(val[0])
+    await fine.ainit()
+    print(fine.fine_amt)
+    print(fine.loan_id)
     
     
     
