@@ -2,6 +2,7 @@
 import tkinter as tk
 
 import asyncio
+import nest_asyncio
 # from Database.DataSort import insert_into_db
 
 from Database.DatabaseConnector import connect_db
@@ -14,7 +15,7 @@ from datetime import datetime, timedelta
 from tkinter import StringVar
 
 #Search Books function to find books
-def search_books():
+async def search_books():
     query = search_entry.get().lower()
    
     # Clear previous search results
@@ -22,10 +23,16 @@ def search_books():
         tree.delete(item)
 
     # Iterate through your data and find matches
-    for book in library_data:
-        if query in book["ISBN"].lower() or query in book["Book Title"].lower() or query in book["Author"].lower():
-            tree.insert("", "end", text=book["ISBN"], values=(book["Book Title"], book["Author"], book["Genre"], book["Year"], book["Status"]))
-           
+    # for book in library_data:
+    #     if query in book["ISBN"].lower() or query in book["Book Title"].lower() or query in book["Author"].lower():
+    #         tree.insert("", "end", text=book["ISBN"], values=(book["Book Title"], book["Author"], book["Genre"], book["Year"], book["Status"]))
+    
+    books = await search_database(query)
+    for book in books:
+        tree.insert("", "end", values=(book[0][0], book[0][1], book[0][2], book[1]))
+
+def async_search_books():
+    asyncio.run(search_books())
 
 # Function to create a new BORROWER
 def create_borrower():
@@ -156,7 +163,7 @@ search_label.grid(row=0, column=0)
 search_entry = ttk.Entry(search_frame)
 search_entry.grid(row=0, column=1)
 
-search_button = ttk.Button(search_frame, text="Search", command=search_books)
+search_button = ttk.Button(search_frame, text="Search", command=async_search_books)
 search_button.grid(row=0, column=2)
 
 button_frame = ttk.Frame(root)
@@ -168,11 +175,11 @@ add_to_cart_button.grid(row=0, column=0, padx=5)
 
 # Your library data (replace this with your actual data)
 library_data = [
-    {"ISBN": "1", "Book Title": "Harry Potter", "Author": "J.K. Rowling", "Genre": "Fantasy", "Year": "1997", "Status": "Checked Out"},
-    {"ISBN": "2", "Book Title": "To Kill a Potter", "Author": "Harper Lee", "Genre": "Fiction", "Year": "1960", "Status": "Available"},
-    {"ISBN": "3", "Book Title": "1984", "Author": "George Orwell", "Genre": "Dystopian", "Year": "1949", "Status": "Available"},
-    {"ISBN": "4", "Book Title": "Why AI is the future and gonna change the world", "Author": "Yash Hooda", "Genre": "Non-Fiction", "Year": "2023", "Status": "Available"},
-    {"ISBN": "5", "Book Title": "The Lord of the Rings", "Author": "J. R. R. Tolkien", "Genre": "Non-Fiction", "Year": "1955", "Status": "Checked Out"},
+    # {"ISBN": "1", "Book Title": "Harry Potter", "Author": "J.K. Rowling", "Genre": "Fantasy", "Year": "1997", "Status": "Checked Out"},
+    # {"ISBN": "2", "Book Title": "To Kill a Potter", "Author": "Harper Lee", "Genre": "Fiction", "Year": "1960", "Status": "Available"},
+    # {"ISBN": "3", "Book Title": "1984", "Author": "George Orwell", "Genre": "Dystopian", "Year": "1949", "Status": "Available"},
+    # {"ISBN": "4", "Book Title": "Why AI is the future and gonna change the world", "Author": "Yash Hooda", "Genre": "Non-Fiction", "Year": "2023", "Status": "Available"},
+    # {"ISBN": "5", "Book Title": "The Lord of the Rings", "Author": "J. R. R. Tolkien", "Genre": "Non-Fiction", "Year": "1955", "Status": "Checked Out"},
    
 ]
 
@@ -180,30 +187,30 @@ cart = []
 
 # Create a treeview to display the data
 tree = ttk.Treeview(root)
-tree["columns"] = ("Book Title", "Author", "Genre", "Year", "Status")
+tree["columns"] = ("ISBN13", "Title", "Author", "Available")
 
 # Define columns
 tree.column("#0", width=0, stretch=tk.NO)
-tree.column("Book Title", anchor=tk.W, width=150)
+tree.column("ISBN13", anchor=tk.W, width=150)
+tree.column("Title", anchor=tk.W, width=100)
 tree.column("Author", anchor=tk.W, width=100)
-tree.column("Genre", anchor=tk.W, width=100)
-tree.column("Year", anchor=tk.W, width=70)
-tree.column("Status", anchor=tk.W, width=80)
+# tree.column("Year", anchor=tk.W, width=70)
+tree.column("Available", anchor=tk.W, width=80)
 
 # Add headings
 tree.heading("#0", text="", anchor=tk.W)
-tree.heading("Book Title", text="Book Title", anchor=tk.W)
+tree.heading("ISBN13", text="ISBN13", anchor=tk.W)
+tree.heading("Title", text="Title", anchor=tk.W)
 tree.heading("Author", text="Author", anchor=tk.W)
-tree.heading("Genre", text="Genre", anchor=tk.W)
-tree.heading("Year", text="Year", anchor=tk.W)
-tree.heading("Status", text="Status", anchor=tk.W)
+# tree.heading("Year", text="Year", anchor=tk.W)
+tree.heading("Available", text="Available", anchor=tk.W)
 
 # Inserting sample data into the treeview
-tree.insert("", "end", text="1", values=("Harry Potter", "J.K. Rowling", "Fantasy", "1997", "Checked Out"))
-tree.insert("", "end", text="2", values=("To Kill a Potter", "Harper Lee", "Fiction", "1960", "Available"))
-tree.insert("", "end", text="3", values=("1984", "George Orwell", "Dystopian", "1949", "Available"))
-tree.insert("", "end", text="4", values=("Why AI is the future and gonna change the world", "Yash Hooda", "Non-Fiction", "2023", "Available"))
-tree.insert("", "end", text="5", values=("The Lord of the Rings", "J. R. R. Tolkien", "Non-Fiction", "1955", "Checked Out"))
+# tree.insert("", "end", text="1", values=("Harry Potter", "J.K. Rowling", "Fantasy", "1997", "Checked Out"))
+# tree.insert("", "end", text="2", values=("To Kill a Potter", "Harper Lee", "Fiction", "1960", "Available"))
+# tree.insert("", "end", text="3", values=("1984", "George Orwell", "Dystopian", "1949", "Available"))
+# tree.insert("", "end", text="4", values=("Why AI is the future and gonna change the world", "Yash Hooda", "Non-Fiction", "2023", "Available"))
+# tree.insert("", "end", text="5", values=("The Lord of the Rings", "J. R. R. Tolkien", "Non-Fiction", "1955", "Checked Out"))
 
 # Place the treeview
 tree.pack(padx=10, pady=10)
@@ -397,5 +404,65 @@ def has_fines(card_number):
 create_borrower_button = ttk.Button(button_frame, text="Create New Borrower", command=create_borrower)
 create_borrower_button.grid(row=0, column=1, padx=5)
 
-# Run the main loop
-root.mainloop()
+# Function to calculate fines and update FINES table
+def calculate_and_update_fines(checkout_id, date_in):
+    # Replace this with your actual logic to calculate fines
+    # You can use the difference between due_date and date_in to calculate the fine amount
+    fine_amount = calculate_fine_amount(checkout_id, date_in)
+
+    # Check if a fine record already exists for the checkout_id
+    existing_fine = get_existing_fine(checkout_id)
+
+    if existing_fine:
+        # If the fine is not paid, update the fine_amt
+        if not existing_fine["paid"]:
+            update_fine(existing_fine["fine_id"], fine_amount)
+    else:
+        # Insert a new fine record
+        insert_into_fines(checkout_id, fine_amount)
+
+# Replace this with your actual logic to calculate the fine amount
+def calculate_fine_amount(checkout_id, date_in):
+    # Sample logic: $0.25 per day for late books
+    # Replace this with your actual logic
+    return 0.25 * days_late(checkout_id, date_in)
+
+# Replace this with your actual logic to get the existing fine record
+def get_existing_fine(checkout_id):
+    # Sample logic: Assume a function that retrieves the existing fine record
+    # Replace this with your actual database query logic
+    existing_fines = [
+        {"fine_id": 1, "checkout_id": "1", "card_number": "123", "fine_amt": 2.5, "paid": False},
+        # ... other existing fines
+    ]
+
+    for fine in existing_fines:
+        if fine["checkout_id"] == checkout_id:
+            return fine
+
+    return None
+
+# Replace this with your actual logic to update the fine record
+def update_fine(fine_id, fine_amount):
+    # Sample logic: Assume a function that updates the fine record
+    # Replace this with your actual database update logic
+    print(f"Updating fine {fine_id} with amount ${fine_amount}")
+
+# Replace this with your actual logic to insert a new fine record
+def insert_into_fines(checkout_id, fine_amount):
+    # Sample logic: Assume a function that inserts a new fine record
+    # Replace this with your actual database insert logic
+    print(f"Inserting new fine for checkout_id {checkout_id} with amount ${fine_amount}")
+
+# Replace this with your actual logic to calculate the days a book is late
+def days_late(checkout_id, date_in):
+    # Sample logic: Assume a function that calculates the days a book is late
+    # Replace this with your actual logic
+    return 5  # Replace with the actual days late calculation
+
+async def main() -> None:
+    await connect_db()
+    root.mainloop()
+
+nest_asyncio.apply()
+asyncio.run(main())
