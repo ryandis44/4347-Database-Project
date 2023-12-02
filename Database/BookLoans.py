@@ -22,6 +22,25 @@ class Borrower:
             return True
         else:
             return False
+        
+    # async def search_database(query: str) -> list:
+    
+    # val = await db.execute(
+    #     "SELECT B.isbn13, B.title, A.name FROM BOOKS AS B "
+    #     "INNER JOIN BOOK_AUTHORS AS BA ON BA.ISBN13 = B.ISBN13 "
+    #     "INNER JOIN AUTHORS AS A ON A.AUTHOR_ID = BA.AUTHOR_ID WHERE ("
+    #     f"B.isbn13 LIKE '%{query}%' OR "
+    #     f"B.title LIKE '%{query}%' OR "
+    #     f"A.name LIKE '%{query}%')"
+    #     "LIMIT 50"
+    # )
+    
+    # if val == []: return [None]
+
+    # async def loan_search(query: str) -> list:
+    #     val = await db.execute(
+    #         "SELECT "
+    #     )
     
     async def check_out(self, isbn13: str) -> [bool, str]:
         val = await db.execute(
@@ -57,15 +76,14 @@ class Borrower:
         )
         return [True, f"Loan ID: {loan_id}, Due Date: {self.__epoch_to_datetime(due_date)}"]
     
-    async def check_in(self, loan: list) -> None:
+    async def check_in(self, loan_id: int) -> None:
         # select from loan search
         date_in = int(time.time())
-        due_date = loan[4]
-
+        
         await db.execute(
             "UPDATE BOOK_LOANS "
             f"SET date_in='{date_in}' "
-            f"WHERE loan_id='{loan[0]}'"
+            f"WHERE loan_id='{loan_id}'"
         )
 
         # if date_in >= due_date: await self.__handle_fines(loan=loan)

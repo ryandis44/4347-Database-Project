@@ -8,6 +8,7 @@ import nest_asyncio
 from Database.DatabaseConnector import connect_db
 from Database.DatabaseSearch import search_database
 from Database.DatabaseSearch import insert_borrower
+from Database.DatabaseSearch import loan_search
 # from example import database_interaction_example
 from Database.BookLoans import Borrower
 
@@ -246,7 +247,7 @@ checkout_button.pack(pady=10)
 
 
 # Check-in books function
-def checkin_books():
+async def checkin_books():
     selected_items = tree.selection()
 
     # If no books have been selected for check-in, return an error.
@@ -281,59 +282,84 @@ def checkin_books():
 
         messagebox.showinfo("Check-in", f"Book '{book_title}' checked in successfully for Card Number: {card_number}")
 
+def async_checkin_books():
+    asyncio.run(checkin_books())
+
 # Define an empty function for update_book_loans
-def update_book_loans(checkout_id, date_in):
-    # Add your logic here to update the BOOK_LOANS table
-    pass
+# def update_book_loans(checkout_id, date_in):
+#     # Add your logic here to update the BOOK_LOANS table
+#     pass
 
 
 # Function to search for matching BOOK_LOANS tuples based on search criteria
-def search_book_loans(search_criteria):
-    # Replace this with your actual logic to search for matching BOOK_LOANS tuples
-    # For demonstration purposes, I'm using a dictionary to simulate the data
-    book_loans_data = [
-        {"Checkout ID": "1", "Card Number": "123", "Book Title": "Harry Potter", "ISBN": "1", "Date Out": "2023-01-01", "Due Date": "2023-01-15", "Date In": None},
-        {"Checkout ID": "2", "Card Number": "456", "Book Title": "To Kill a Mockingbird", "ISBN": "2", "Date Out": "2023-02-01", "Due Date": "2023-02-15", "Date In": "2023-02-10"},
-        # Add more data as needed
-    ]
+# def search_book_loans(search_criteria):
+#     # Replace this with your actual logic to search for matching BOOK_LOANS tuples
+#     # For demonstration purposes, I'm using a dictionary to simulate the data
+#     book_loans_data = [
+#         {"Checkout ID": "1", "Card Number": "123", "Book Title": "Harry Potter", "ISBN": "1", "Date Out": "2023-01-01", "Due Date": "2023-01-15", "Date In": None},
+#         {"Checkout ID": "2", "Card Number": "456", "Book Title": "To Kill a Mockingbird", "ISBN": "2", "Date Out": "2023-02-01", "Due Date": "2023-02-15", "Date In": "2023-02-10"},
+#         # Add more data as needed
+#     ]
 
-    # Search for matching loans based on ISBN, Card Number, or Borrower Name
-    matching_loans = [loan for loan in book_loans_data
-                      if search_criteria.lower() in loan["ISBN"].lower()
-                      or search_criteria.lower() in loan["Card Number"].lower()
-                      or search_criteria.lower() in loan["Book Title"].lower()]
+#     # Search for matching loans based on ISBN, Card Number, or Borrower Name
+#     matching_loans = [loan for loan in book_loans_data
+#                       if search_criteria.lower() in loan["ISBN"].lower()
+#                       or search_criteria.lower() in loan["Card Number"].lower()
+#                       or search_criteria.lower() in loan["Book Title"].lower()]
 
-    return matching_loans
+#     return matching_loans
 
 # Function to display matching loans and prompt for selection
-def select_book_loan(matching_loans):
+async def select_book_loan():
     # Create a new window to display the matching loans
     select_window = tk.Toplevel(root)
     select_window.title("Select Book Loan")
 
+    loan_search_frame = ttk.Frame(select_window)
+    loan_search_frame.pack(pady=10)
+
+    loan_search_label = ttk.Label(loan_search_frame, text="Search:")
+    loan_search_label.grid(row=0, column=0)
+
+    global loan_search_entry
+    loan_search_entry = ttk.Entry(loan_search_frame)
+    loan_search_entry.grid(row=0, column=1)
+
+    loan_search_button = ttk.Button(loan_search_frame, text="Search", command=async_search_loan_books)
+    loan_search_button.grid(row=0, column=2)
+
+    loan_button_frame = ttk.Frame(select_window)
+    loan_button_frame.pack(pady=10)
+
     # Create a treeview to display the matching loans
+    global select_tree
     select_tree = ttk.Treeview(select_window)
-    select_tree["columns"] = ("Book Title", "Card Number", "Checkout ID", "Date Out", "Due Date")
+    select_tree["columns"] = ("Book ISBN", "Card Number", "Loan ID", "Date Out", "Due Date")
 
     # Define columns
     select_tree.column("#0", width=0, stretch=tk.NO)
-    select_tree.column("Book Title", anchor=tk.W, width=150)
+    select_tree.column("Book ISBN", anchor=tk.W, width=150)
     select_tree.column("Card Number", anchor=tk.W, width=100)
-    select_tree.column("Checkout ID", anchor=tk.W, width=100)
+    select_tree.column("Loan ID", anchor=tk.W, width=100)
     select_tree.column("Date Out", anchor=tk.W, width=100)
     select_tree.column("Due Date", anchor=tk.W, width=100)
 
     # Add headings
     select_tree.heading("#0", text="", anchor=tk.W)
-    select_tree.heading("Book Title", text="Book Title", anchor=tk.W)
+    select_tree.heading("Book ISBN", text="Book ISBN", anchor=tk.W)
     select_tree.heading("Card Number", text="Card Number", anchor=tk.W)
-    select_tree.heading("Checkout ID", text="Checkout ID", anchor=tk.W)
+    select_tree.heading("Loan ID", text="Loan ID", anchor=tk.W)
     select_tree.heading("Date Out", text="Date Out", anchor=tk.W)
     select_tree.heading("Due Date", text="Due Date", anchor=tk.W)
 
+    select_tree.pack(padx=10, pady=10)
+
+    checkin_button = ttk.Button(select_window, text="Checkin Selected Book", command=async_checkout_books)
+    checkin_button.pack(pady=10)
+
     # Insert matching loans into the treeview
-    for loan in matching_loans:
-        select_tree.insert("", "end", values=(loan["Book Title"], loan["Card Number"], loan["Checkout ID"], loan["Date Out"], loan["Due Date"]))
+    # for loan in matching_loans:
+    #     select_tree.insert("", "end", values=(loan["Book Title"], loan["Card Number"], loan["Checkout ID"], loan["Date Out"], loan["Due Date"]))
 
     # Function to handle item selection and close the window
     def on_select():
@@ -351,9 +377,34 @@ def select_book_loan(matching_loans):
 
     # Run the window's main loop
     select_window.mainloop()
+
+def async_select_book_loan():
+    asyncio.run(select_book_loan())
+
+async def search_loan_books():
+    query = loan_search_entry.get().lower()
+   
+    # Clear previous search results
+    for item in select_tree.get_children():
+        tree.delete(item)
+
+    # Iterate through your data and find matches
+    # for book in library_data:
+    #     if query in book["ISBN"].lower() or query in book["Book Title"].lower() or query in book["Author"].lower():
+    #         tree.insert("", "end", text=book["ISBN"], values=(book["Book Title"], book["Author"], book["Genre"], book["Year"], book["Status"]))
+    
+    loans = await loan_search(query)
+    for loan in loans:
+        tree.insert("", "end", values=(loan[2], loan[1], loan[0], epoch_to_datetime(loan[3]), epoch_to_datetime(loan[4])))
+
+def async_search_loan_books():
+    asyncio.run(search_loan_books)
+
+def epoch_to_datetime(epoch):
+        return datetime.fromtimestamp(epoch).strftime("%A, %B %d, %Y %I:%M:%S")
    
 # Add a button for checking in books
-checkin_button = ttk.Button(root, text="Checkin Selected Books", command=checkin_books)
+checkin_button = ttk.Button(root, text="Checkin Books", command=async_select_book_loan)
 checkin_button.pack(pady=10)
 
 # Define an empty function for checkin_selected_books
