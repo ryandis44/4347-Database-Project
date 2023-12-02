@@ -484,6 +484,70 @@ def days_late(checkout_id, date_in):
     # Replace this with your actual logic
     return 5  # Replace with the actual days late calculation
 
+# Function to search fines data
+def search_fines_data(criteria):
+    # Your implementation here
+    pass
+
+# Function to update fines for selected books
+def update_fines():
+    selected_items = tree.selection()
+
+    # If no books have been selected, return an error.
+    if not selected_items:
+        messagebox.showinfo("Update Fines", "Please select at least one book to update fines.")
+        return
+
+    # Prompt for date in
+    date_in = tk.simpledialog.askstring("Update Fines", "Enter Date In (YYYY-MM-DD):")
+    if not date_in:
+        return  # User canceled the input
+
+    # Update fines for each selected book
+    for item in selected_items:
+        checkout_id = tree.item(item, "text")  # Assuming checkout_id is in the first column
+        calculate_and_update_fines(checkout_id, date_in)
+        
+# Create a frame for fines search
+fines_search_frame = ttk.Frame(root)
+fines_search_frame.pack(pady=10)
+
+# Add labels and entry widgets for search criteria
+card_number_label = ttk.Label(fines_search_frame, text="Card Number:")
+card_number_label.grid(row=0, column=0)
+card_number_entry = ttk.Entry(fines_search_frame)
+card_number_entry.grid(row=0, column=1)
+
+book_title_label = ttk.Label(fines_search_frame, text="Book Title:")
+book_title_label.grid(row=0, column=2)
+book_title_entry = ttk.Entry(fines_search_frame)
+book_title_entry.grid(row=0, column=3)
+
+
+# Function to search fines based on criteria
+def search_fines():
+    card_number = card_number_entry.get()
+    book_title = book_title_entry.get()
+
+    # Call your fines search logic using card_number and book_title
+    matching_fines = search_fines_data(card_number, book_title)
+
+    # Display matching fines (you can use a new window or messagebox)
+    if matching_fines:
+        messagebox.showinfo("Fines Search Results", f"Matching Fines: {matching_fines}")
+    else:
+        messagebox.showinfo("Fines Search Results", "No matching fines found.")
+
+
+# Add a button for updating fines
+update_fines_button = ttk.Button(root, text="Update Fines", command=update_fines)
+update_fines_button.pack(pady=10)
+
+
+# Add a button to trigger fines search
+search_fines_button = ttk.Button(fines_search_frame, text="Search Fines", command=search_fines)
+search_fines_button.grid(row=0, column=4)
+
 async def main() -> None:
     await connect_db()
     root.mainloop()
