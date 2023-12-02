@@ -11,8 +11,11 @@ db = Database("fines.py")
 
 class Fines:
     
-    async def calculate_fine(self, loan: list) -> None:
-        due_date = loan[4]
+    def __init__(self, loan: list) -> None:
+        self.loan = loan
+    
+    async def calculate_fine(self) -> None:
+        due_date = self.loan[4]
         date_in = int(time.time())
         
         if date_in <= due_date:
@@ -21,13 +24,13 @@ class Fines:
         difference_in_days = (date_in - due_date) // (24 * 3600)
         fine_amt = round(difference_in_days * 0.25, 2)
         
-        await self.__update_or_create_fine(loan, fine_amt)
+        await self.__update_or_create_fine(self.loan, fine_amt)
     
-    async def __update_or_create_fine(self, loan: list, fine_amt: float) -> None:
-        card_id = loan[1]
+    async def __update_or_create_fine(self, fine_amt: float) -> None:
+        card_id = self.loan[1]
         existing_fine = await db.execute(
             "SELECT fine_amt, paid FROM FINES WHERE "
-            f"loan_id='{loan[0]}'"
+            f"loan_id='{self.loan[0]}'"
         )
         
         if existing_fine:
@@ -35,13 +38,16 @@ class Fines:
                 if existing_fine[0] != fine_amt:
                     await db.execute(
                         "UPDATE FINES SET fine_amt = "
-                        f"'{fine_amt}' WHERE loan_id='{loan[0]}'"
+                        f"'{fine_amt}' WHERE loan_id='{self.loan[0]}'"
                     )
         else:
             await db.execute(
                 "INSERT INTO FINES (loan_id, fine_amt, paid) VALUES "
-                f"('{loan[0]}', '{fine_amt}', '0')"
+                f"('{self.loan[0]}', '{fine_amt}', '0')"
             )
+    
+    async def get_fine_amt(self) -> int:
+        pass
     
     async def pay_fine(self, loan_id: str) -> None:
         loan = await db.execute(

@@ -9,6 +9,8 @@ try:
     IP = dns.resolver.resolve(os.getenv('REMOTE_DOMAIN'), 'A').rrset[0].to_text()
 except dns.resolver.NoAnswer:
     IP = "No answer"
+    
+IP = "192.168.0.12"
 
 POOL = None
 async def connect_db() -> None:
