@@ -88,26 +88,26 @@ def async_create_borrower():
 #     print(f"BORROWER created with Card Number: {card_no}, Name: {name}, SSN: {ssn}, Address: {address}")
 
 
-def add_to_cart():
-    selected_item = tree.selection()
-    if selected_item:
+# def add_to_cart():
+#     selected_item = tree.selection()
+#     if selected_item:
          
-            book_title = tree.item(selected_item, "values")[0]
-            book_status = tree.item(selected_item, "values")[-1]
-            if book_status == "Available":
-                if book_title not in cart:
-                    cart.append(book_title)
-                    messagebox.showinfo("Added to cart", f" {book_title} was successfully added to your cart.")
-                else:
-                    messagebox.showwarning("This book is already in your cart.")
-            else:messagebox.showerror("Book is Checked out. Please select another book")
-    else:
-         messagebox.showwarning("No book selected", "please select a book to add in your cart")
+#             book_isbn = tree.item(selected_item, "values")[0]
+#             book_status = tree.item(selected_item, "values")[-1]
+#             if book_status == "True":
+#                 if book_isbn not in cart:
+#                     cart.append(book_isbn)
+#                     messagebox.showinfo("Added to cart", f" {book_isbn} was successfully added to your cart.")
+#                 else:
+#                     messagebox.showwarning("This book is already in your cart.")
+#             else:messagebox.showerror("Book is Checked out. Please select another book")
+#     else:
+#          messagebox.showwarning("No book selected", "please select a book to add in your cart")
 
 
 
 #Checkout books function to select books for checkout.
-def checkout_books():
+async def checkout_books():
     selected_items = tree.selection()
    
 #If books haven't been selected for checkout, return error.
@@ -116,8 +116,8 @@ def checkout_books():
         return
 
     # Prompt for borrower's card number
-    card_number = tk.simpledialog.askstring("Checkout", "Enter Borrower's Card Number:")
-    if not card_number:
+    card_id = tk.simpledialog.askinteger("Checkout", "Enter Borrower's Card Number:")
+    if not card_id:
         return  # User canceled the input
 
     # Generate unique keys for each checkout
@@ -130,13 +130,30 @@ def checkout_books():
     due_date = (datetime.today() + timedelta(days=14)).strftime("%Y-%m-%d")
 
     # Update the BOOK_LOANS table (replace this with your actual database update logic)
-    for item, checkout_id in zip(selected_items, checkout_ids):
-        book_title = tree.item(item, "values")[0]  # Assuming the book title is in the first column
-        # Insert the checkout information into the BOOK_LOANS table (replace this with your actual database update logic)
-        print(f"Book '{book_title}' checked out with Checkout ID: {checkout_id}, Card Number: {card_number}, Date Out: {date_out}, Due Date: {due_date}")
+    # for item, checkout_id in zip(selected_items, checkout_ids):
+    #     book_title = tree.item(item, "values")[0]  # Assuming the book title is in the first column
+    #     # Insert the checkout information into the BOOK_LOANS table (replace this with your actual database update logic)
+    #     print(f"Book '{book_title}' checked out with Checkout ID: {checkout_id}, Card Number: {card_number}, Date Out: {date_out}, Due Date: {due_date}")
+
+    borrower = Borrower(card_id)
+    check = await borrower.id_check()
+    if not check:
+        tk.messagebox.showerror("Error", "Card ID does not exist.")
+        return
+    
+    for item in selected_items:
+        isbn = tree.item(item, "values")[0]
+        [val, msg] = await borrower.check_out(isbn)
+        if val:
+            tk.messagebox.showinfo("Checkout", msg)
+        else:
+            tk.messagebox.showerror("Error", msg)
 
 #Successful checkout
-    tk.messagebox.showinfo("Checkout", "Books checked out successfully.")
+    tk.messagebox.showinfo("Checkout", "Book checkout complete.")
+
+def async_checkout_books():
+    asyncio.run(checkout_books())
    
    
 #Prompt for card number method
@@ -176,8 +193,8 @@ search_button.grid(row=0, column=2)
 button_frame = ttk.Frame(root)
 button_frame.pack(pady=10)
 
-add_to_cart_button = ttk.Button(button_frame, text = "Add to cart", command=add_to_cart)
-add_to_cart_button.grid(row=0, column=0, padx=5)
+# add_to_cart_button = ttk.Button(button_frame, text = "Add to cart", command=add_to_cart)
+# add_to_cart_button.grid(row=0, column=0, padx=5)
 
 
 # Your library data (replace this with your actual data)
@@ -224,7 +241,7 @@ tree.pack(padx=10, pady=10)
 
 
 # Add a button for checking out books
-checkout_button = ttk.Button(root, text="Checkout Selected Books", command=checkout_books)
+checkout_button = ttk.Button(root, text="Checkout Selected Books", command=async_checkout_books)
 checkout_button.pack(pady=10)
 
 
@@ -409,7 +426,7 @@ def has_fines(card_number):
 
 # Create a button to trigger the creation of a new BORROWER
 create_borrower_button = ttk.Button(button_frame, text="Create New Borrower", command=async_create_borrower)
-create_borrower_button.grid(row=0, column=1, padx=5)
+create_borrower_button.grid(row=0, column=1, padx=0)
 
 # Function to calculate fines and update FINES table
 def calculate_and_update_fines(checkout_id, date_in):
