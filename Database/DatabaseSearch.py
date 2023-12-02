@@ -47,7 +47,7 @@ async def loan_search(query: str) -> list:
     if val == []: return [None]
     return val
 
-async def create_borrower(ssn: str, bname: str, address: str, phone: str) -> [str, bool]:
+async def insert_borrower(ssn: str, bname: str, address: str, phone: str) -> [str, bool]:
     
     val = await db.execute(
         "SELECT COUNT(*) FROM BORROWER WHERE "
@@ -56,7 +56,7 @@ async def create_borrower(ssn: str, bname: str, address: str, phone: str) -> [st
     if val > 0: return ["SSN already exists", False]
     
     await db.execute(
-        "INSERT INTO BORROWER (ssn, baname, address, phone) VALUES "
+        "INSERT INTO BORROWER (ssn, bname, address, phone) VALUES "
         f"('{ssn}', '{bname}', '{address}', '{phone}')"
     )
     

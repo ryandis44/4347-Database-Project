@@ -7,6 +7,7 @@ import nest_asyncio
 
 from Database.DatabaseConnector import connect_db
 from Database.DatabaseSearch import search_database
+from Database.DatabaseSearch import insert_borrower
 # from example import database_interaction_example
 from Database.BookLoans import Borrower
 
@@ -35,50 +36,56 @@ def async_search_books():
     asyncio.run(search_books())
 
 # Function to create a new BORROWER
-def create_borrower():
+async def create_borrower():
     # Prompt for borrower details
     borrower_name = simpledialog.askstring("Create Borrower", "Enter Borrower's Name:")
     borrower_ssn = simpledialog.askstring("Create Borrower", "Enter Borrower's SSN:")
     borrower_address = simpledialog.askstring("Create Borrower", "Enter Borrower's Address:")
+    borrower_phone = simpledialog.askstring("Create Borrower", "Enter Borrower's Phone Number:")
 
     # Validate if all required fields are provided
-    if not borrower_name or not borrower_ssn or not borrower_address:
-        messagebox.showerror("Error", "Name, SSN, and address are required to create a new account.")
+    if not borrower_name or not borrower_ssn or not borrower_address or not borrower_phone:
+        messagebox.showerror("Error", "Name, SSN, address, and phone number are required to create a new account.")
         return
 
     # Generate a new card_no (replace this with your actual logic)
-    new_card_no = generate_new_card_no()
+    # new_card_no = generate_new_card_no()
 
+    [card_id, check] = await insert_borrower(borrower_ssn, borrower_name, borrower_address, borrower_phone)
+    
     # Check if the SSN is unique
-    if is_ssn_unique(borrower_ssn):
+    if check:
         # Insert the new BORROWER into the database (replace this with your actual database update logic)
-        insert_into_borrowers(new_card_no, borrower_name, borrower_ssn, borrower_address)
+        # insert_into_borrowers(borrower_name, borrower_ssn, borrower_address, borrower_phone)
 
-        messagebox.showinfo("Success", f"Borrower created successfully with Card Number: {new_card_no}")
+        messagebox.showinfo("Success", f"Borrower created successfully with Card Number: {card_id}")
     else:
         messagebox.showerror("Error", "A borrower with the same SSN already exists.")
 
+def async_create_borrower():
+    asyncio.run(create_borrower())
+
 # Function to generate a new card_no
-def generate_new_card_no():
-    # Replace this with your actual logic to generate a new card_no
-    # For demonstration purposes, I'm using a simple format: "C" + current_timestamp
-    return "C" + str(int(datetime.now().timestamp()))
+# def generate_new_card_no():
+#     # Replace this with your actual logic to generate a new card_no
+#     # For demonstration purposes, I'm using a simple format: "C" + current_timestamp
+#     return "C" + str(int(datetime.now().timestamp()))
 
 # Function to check if the SSN is unique
-def is_ssn_unique(borrower_ssn):
-    # Replace this with your actual logic to check if the SSN is unique
-    # For demonstration purposes, I'm using a dictionary to simulate the data
-    existing_borrowers = {
-        "123-45-6789": {"card_no": "C123456789"},
-        "987-65-4321": {"card_no": "C987654321"},
-    }
+# def is_ssn_unique(borrower_ssn):
+#     # Replace this with your actual logic to check if the SSN is unique
+#     # For demonstration purposes, I'm using a dictionary to simulate the data
+#     existing_borrowers = {
+#         "123-45-6789": {"card_no": "C123456789"},
+#         "987-65-4321": {"card_no": "C987654321"},
+#     }
 
-    return borrower_ssn not in existing_borrowers
+#     return borrower_ssn not in existing_borrowers
 
 # Function to insert a new BORROWER into the database
-def insert_into_borrowers(card_no, name, ssn, address):
-    # Add your logic here to insert the new BORROWER into the BORROWERS table
-    print(f"BORROWER created with Card Number: {card_no}, Name: {name}, SSN: {ssn}, Address: {address}")
+# def insert_into_borrowers(card_no, name, ssn, address):
+#     # Add your logic here to insert the new BORROWER into the BORROWERS table
+#     print(f"BORROWER created with Card Number: {card_no}, Name: {name}, SSN: {ssn}, Address: {address}")
 
 
 def add_to_cart():
@@ -401,7 +408,7 @@ def has_fines(card_number):
     
 
 # Create a button to trigger the creation of a new BORROWER
-create_borrower_button = ttk.Button(button_frame, text="Create New Borrower", command=create_borrower)
+create_borrower_button = ttk.Button(button_frame, text="Create New Borrower", command=async_create_borrower)
 create_borrower_button.grid(row=0, column=1, padx=5)
 
 # Function to calculate fines and update FINES table
